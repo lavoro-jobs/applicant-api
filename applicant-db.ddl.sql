@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS applicant_profiles (
     age SMALLINT CHECK (age > 0),
     gender gender,
     skills_id uuid REFERENCES skills_catalog(id) ON DELETE RESTRICT,
-    account_id uuid REFERENCES accounts(id) ON DELETE CASCADE,
+    account_id uuid NOT NULL REFERENCES accounts(id) ON DELETE CASCADE,
     cv_url VARCHAR(255),
     work_type_id uuid REFERENCES work_type_catalog(id) ON DELETE RESTRICT,
     seniority_level SMALLINT,
