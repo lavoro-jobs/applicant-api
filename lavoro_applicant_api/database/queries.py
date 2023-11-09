@@ -2,10 +2,10 @@ from collections import defaultdict
 from typing import List
 
 from lavoro_applicant_api.database import db
-from lavoro_library.models import ApplicantProfileResponse, ApplicantProfile, Experience, Point
+from lavoro_library.models import ApplicantProfileDto, ApplicantProfile, Experience, Point
 
 
-def get_applicant_profiles() -> List[ApplicantProfileResponse]:
+def get_applicant_profiles() -> List[ApplicantProfileDto]:
     query_tuple = ("""
         SELECT 
             ap.id AS id,
@@ -63,7 +63,7 @@ def get_applicant_profiles() -> List[ApplicantProfileResponse]:
                 'min_salary': row['min_salary'],
                 'experiences': []
             }
-            applicants[applicant_id] = ApplicantProfileResponse(**applicant_data)
+            applicants[applicant_id] = ApplicantProfileDto(**applicant_data)
 
         # Add experience to the applicant profile if it exists
         if row['experience_id']:

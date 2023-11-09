@@ -7,14 +7,14 @@ from lavoro_applicant_api.database.queries import (
 )
 
 from lavoro_library.models import (
-    ApplicantProfileResponse,
+    ApplicantProfileDto,
 )
 
 
 router = APIRouter(prefix="/applicant", tags=["applicant"])
 
 
-@router.get("/get_applicant_profiles", response_model=List[ApplicantProfileResponse])
+@router.get("/get_applicant_profiles", response_model=List[ApplicantProfileDto])
 def get_applicants():
     result = get_applicant_profiles()
     return result
