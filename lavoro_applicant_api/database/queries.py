@@ -1,8 +1,56 @@
-from collections import defaultdict
+from enum import Enum
 from typing import List
+import json
+from uuid import UUID
 
 from lavoro_applicant_api.database import db
 from lavoro_library.models import ApplicantProfileDto, ApplicantProfile, Experience, ExperienceDto, Point
+
+
+def create_applicant_profile(request: ApplicantProfileDto) -> ApplicantProfileDto:
+    data = request.dict(exclude={'experiences'})
+    values_tuple = tuple(convert_value(value) for value in data.values())
+
+    sql = '''
+        INSERT INTO applicant_profiles (first_name, last_name, education_level_id, age, gender, skills_id, account_id, cv_url, work_type_id, seniority_level, position_id, home_location, work_location_max_distance, contract_type_id, min_salary)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s) RETURNING id
+        '''
+
+    result = db.execute_one((sql, values_tuple))
+
+    if result and 'result' in result and result['result']:
+        applicant_profile_id = result['result'][0]['id']
+        data['id'] = applicant_profile_id
+        print(f"ApplicantProfile inserted with ID: {applicant_profile_id}")
+    else:
+        print("Failed to insert ApplicantProfile.")
+        applicant_profile_id = None
+
+    if applicant_profile_id:
+        applicant_profile_dto = ApplicantProfileDto(**data)
+        experiences_data = request.experiences
+        experiences_list = []
+
+        for experience in experiences_data:
+            experience_dict = experience.dict()
+            experience_dict['applicant_profile_id'] = applicant_profile_id
+
+            sql = '''
+                    INSERT INTO experiences (company_name, position_id, years, applicant_profile_id)
+                    VALUES (%s, %s, %s, %s) RETURNING id
+                    '''
+
+            values_tuple = tuple(convert_value(value) for value in experience_dict.values())
+            result = db.execute_one((sql, values_tuple))
+
+            experience_dict['id'] = result['result'][0]['id']
+            experience_dto = ExperienceDto(**experience_dict)
+            experiences_list.append(experience_dto)
+
+        applicant_profile_dto.experiences = experiences_list
+        return applicant_profile_dto
+    else:
+        print("Could not insert experiences without an applicant profile ID.")
 
 
 def get_applicant_profiles() -> List[ApplicantProfileDto]:
@@ -77,3 +125,17 @@ def get_applicant_profiles() -> List[ApplicantProfileDto]:
 
     # Convert dictionary to list and return it
     return list(applicants.values())
+
+
+def convert_value(value):
+    if isinstance(value, UUID):
+        return str(value)
+    elif isinstance(value, Enum):
+        return value.value
+    elif isinstance(value, dict):
+        if 'x' in value and 'y' in value:
+            return f"({value['x']}, {value['y']})"
+        else:
+            return json.dumps(value)
+    else:
+        return value
