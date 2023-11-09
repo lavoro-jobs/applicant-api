@@ -22,5 +22,5 @@ RUN /devel/pre_install.sh
 
 ENV PYTHONPATH "${PYTHONPATH}:/devel"
 
-ENTRYPOINT ["/wait-for-it.sh", "applicant-db:5432", "--"]
+ENTRYPOINT ["/wait-for-it.sh", "pgsql:5432", "--timeout=150", "--"]
 CMD ["uvicorn", "lavoro_applicant_api.applicant_api:app", "--host", "0.0.0.0", "--port", "80"]
