@@ -2,7 +2,7 @@ from collections import defaultdict
 from typing import List
 
 from lavoro_applicant_api.database import db
-from lavoro_library.models import ApplicantProfileDto, ApplicantProfile, Experience, Point
+from lavoro_library.models import ApplicantProfileDto, ApplicantProfile, Experience, ExperienceDto, Point
 
 
 def get_applicant_profiles() -> List[ApplicantProfileDto]:
@@ -71,10 +71,9 @@ def get_applicant_profiles() -> List[ApplicantProfileDto]:
                 'id': row['experience_id'],
                 'company_name': row['experience_company_name'],
                 'position_id': row['experience_position_id'],
-                'years': row['experience_years'],
-                'applicant_profile_id': row['experience_applicant_profile_id']
+                'years': row['experience_years']
             }
-            applicants[applicant_id].experiences.append(Experience(**experience_data))
+            applicants[applicant_id].experiences.append(ExperienceDto(**experience_data))
 
     # Convert dictionary to list and return it
     return list(applicants.values())
