@@ -1,14 +1,8 @@
-from typing import List
-
 from fastapi import APIRouter, status
 
-from lavoro_applicant_api.database.queries import (
-    create_applicant_profile,
-)
+from lavoro_applicant_api.database.queries import create_applicant_profile
 
-from lavoro_library.models import (
-    CreateApplicantProfileRequest
-)
+from lavoro_library.models import CreateApplicantProfileRequest
 
 router = APIRouter(prefix="/applicant", tags=["applicant"])
 
