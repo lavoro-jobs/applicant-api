@@ -1,6 +1,5 @@
 from lavoro_applicant_api.database import db
-from lavoro_library.models import ApplicantProfileDto, CreateApplicantProfileRequest, ApplicantProfile, Experience, \
-    ExperienceDto, Point
+from lavoro_library.models import CreateApplicantProfileRequest
 from lavoro_applicant_api.helpers.data_helpers import prepare_applicant_profile_data, prepare_experience_data, extract_id
 
 
