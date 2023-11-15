@@ -1,11 +1,12 @@
-FROM python:3.9
+FROM python:3.9-alpine
 
 WORKDIR /devel
 
 COPY ./lavoro-applicant-api/requirements.txt /devel/requirements.txt
 RUN pip install --no-cache-dir --upgrade -r /devel/requirements.txt
 
-RUN apt-get update && apt-get install -y curl
+RUN apk add curl
+RUN apk add bash
 
 RUN curl -sS https://raw.githubusercontent.com/vishnubob/wait-for-it/master/wait-for-it.sh -o /wait-for-it.sh \
     && chmod +x /wait-for-it.sh
