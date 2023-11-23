@@ -1,17 +1,26 @@
 import uuid
-from typing import List
+from typing import List, Union
 
 from lavoro_applicant_api.database import db
-from lavoro_library.models import CreateExperienceRequest, Gender, Point
+from lavoro_library.models import ApplicantProfile, ApplicantProfileInDB,  CreateExperienceRequest, Gender, Experience, Point
 
 
 def get_applicant_profile(account_id: uuid.UUID):
     query_tuple = ("SELECT * FROM applicant_profiles WHERE account_id = %s", (account_id,))
     result = db.execute_one(query_tuple)
     if result["result"]:
-        return result["result"][0]
+        return ApplicantProfileInDB(**result["result"][0])
     else:
         return None
+
+
+def get_applicant_experiences(applicant_profile_id: uuid.UUID):
+    query_tuple = ("SELECT * FROM experiences WHERE applicant_profile_id = %s", (applicant_profile_id,))
+    result = db.execute_one(query_tuple)
+    if result["result"]:
+        return [Experience(**experience) for experience in result["result"]]
+    else:
+        return []
 
 
 def insert_applicant_profile(
@@ -21,8 +30,8 @@ def insert_applicant_profile(
     education_level_id: int,
     age: int,
     gender: Gender,
-    skills_id: List[int],
-    cv_url: str,
+    skill_id_list: List[int],
+    cv: Union[bytes, None],
     work_type_id: int,
     seniority_level_id: int,
     position_id: int,
@@ -37,7 +46,7 @@ def insert_applicant_profile(
             work_type_id, seniority_level, position_id, home_location, work_location_max_distance,
             contract_type_id, min_salary)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-        RETURNING id
+        RETURNING *
         """
 
     point = (home_location.get("longitude"), home_location.get("latitude"))
@@ -50,7 +59,7 @@ def insert_applicant_profile(
             education_level_id,
             age,
             gender,
-            skills_id,
+            skill_id_list,
             account_id,
             work_type_id,
             seniority_level_id,
@@ -64,7 +73,7 @@ def insert_applicant_profile(
 
     result = db.execute_one(query_tuple)
     if result["result"]:
-        return result["result"][0]["id"]
+        return ApplicantProfileInDB(**result["result"][0])
     return None
 
 
