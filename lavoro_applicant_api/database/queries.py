@@ -43,7 +43,7 @@ def insert_applicant_profile(
     query = """
         INSERT INTO applicant_profiles (
             first_name, last_name, education_level_id, age, gender, skills_id, account_id,
-            work_type_id, seniority_level, position_id, home_location, work_location_max_distance,
+            work_type_id, seniority_level_id, position_id, home_location, work_location_max_distance,
             contract_type_id, min_salary)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING *
