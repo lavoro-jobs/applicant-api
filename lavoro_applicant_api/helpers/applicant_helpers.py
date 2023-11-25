@@ -6,4 +6,5 @@ def create_applicant_profile(account_id, form_data: CreateApplicantProfileReques
     applicant_info = form_data.model_dump(exclude={"experiences"})
     experiences = form_data.experiences
     created_applicant_profile = insert_applicant_profile(account_id, **applicant_info)
-    return insert_experiences(experiences, created_applicant_profile.id)
+    created_experiences = insert_experiences(experiences, created_applicant_profile.account_id)
+    return created_applicant_profile

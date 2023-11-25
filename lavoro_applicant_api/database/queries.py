@@ -42,8 +42,8 @@ def insert_applicant_profile(
 ):
     query = """
         INSERT INTO applicant_profiles (
-            first_name, last_name, education_level_id, age, gender, skills_id, account_id,
-            work_type_id, seniority_level, position_id, home_location, work_location_max_distance,
+            first_name, last_name, education_level_id, age, gender, skill_id_list, account_id,
+            work_type_id, seniority_level_id, position_id, home_location, work_location_max_distance,
             contract_type_id, min_salary)
         VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
         RETURNING *
@@ -77,14 +77,14 @@ def insert_applicant_profile(
     return None
 
 
-def insert_experiences(experiences: List[CreateExperienceRequest], applicant_profile_id: uuid.UUID):
+def insert_experiences(experiences: List[CreateExperienceRequest], applicant_account_id: uuid.UUID):
     query = """
-        INSERT INTO experiences (company_name, position_id, years, applicant_profile_id)
+        INSERT INTO experiences (company_name, position_id, years, applicant_account_id)
         VALUES (%s, %s, %s, %s)
         """
 
     query_tuple_list = [
-        (query, (experience.company_name, experience.position_id, experience.years, applicant_profile_id))
+        (query, (experience.company_name, experience.position_id, experience.years, applicant_account_id))
         for experience in experiences
     ]
 

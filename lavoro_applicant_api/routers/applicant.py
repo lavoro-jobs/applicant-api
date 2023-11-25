@@ -24,7 +24,7 @@ def create_applicant(account_id: uuid.UUID, form_data: CreateApplicantProfileReq
 @router.get("/get_applicant_profile/{account_id}")
 def get_applicant(account_id: uuid.UUID):
     applicant_profile = get_applicant_profile(account_id)
-    experiences = get_applicant_experiences(applicant_profile.id)
+    experiences = get_applicant_experiences(applicant_profile.account_id)
     applicant_profile.experiences = experiences
     if not applicant_profile:
         raise HTTPException(status_code=404, detail="Applicant profile not found")
