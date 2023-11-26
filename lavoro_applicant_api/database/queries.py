@@ -14,8 +14,8 @@ def get_applicant_profile(account_id: uuid.UUID):
         return None
 
 
-def get_applicant_experiences(applicant_profile_id: uuid.UUID):
-    query_tuple = ("SELECT * FROM experiences WHERE applicant_profile_id = %s", (applicant_profile_id,))
+def get_applicant_experiences(account_id: uuid.UUID):
+    query_tuple = ("SELECT * FROM experiences WHERE account_id = %s", (account_id,))
     result = db.execute_one(query_tuple)
     if result["result"]:
         return [Experience(**experience) for experience in result["result"]]
