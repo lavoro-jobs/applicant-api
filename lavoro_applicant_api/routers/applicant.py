@@ -10,7 +10,7 @@ from lavoro_library.models import CreateApplicantProfileRequest
 router = APIRouter(prefix="/applicant", tags=["applicant"])
 
 
-@router.post("/create_applicant_profile/{account_id}", status_code=status.HTTP_201_CREATED)
+@router.post("/create-applicant-profile/{account_id}", status_code=status.HTTP_201_CREATED)
 def create_applicant(account_id: uuid.UUID, form_data: CreateApplicantProfileRequest):
     applicant_profile = get_applicant_profile(account_id)
     if applicant_profile:
@@ -21,7 +21,7 @@ def create_applicant(account_id: uuid.UUID, form_data: CreateApplicantProfileReq
     return {"detail": "Applicant profile created"}
 
 
-@router.get("/get_applicant_profile/{account_id}")
+@router.get("/get-applicant-profile/{account_id}")
 def get_applicant(account_id: uuid.UUID):
     applicant_profile = get_applicant_profile(account_id)
     experiences = get_applicant_experiences(applicant_profile.account_id)
