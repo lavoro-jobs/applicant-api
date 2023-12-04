@@ -4,9 +4,9 @@ from fastapi import APIRouter, status, HTTPException
 
 from lavoro_applicant_api.helpers.applicant_helpers import create_applicant_profile
 from lavoro_applicant_api.database.queries import get_applicant_experiences, get_applicant_profile, \
-    update_applicant_profile
+    update_applicant_profile, update_applicant_experience, get_applicant_experience
 
-from lavoro_library.models import CreateApplicantProfileRequest, UpdateApplicantProfileRequest
+from lavoro_library.models import CreateApplicantProfileRequest, UpdateApplicantProfileRequest, UpdateApplicantExperienceRequest
 
 router = APIRouter(prefix="/applicant", tags=["applicant"])
 
@@ -41,3 +41,14 @@ def update_applicant(account_id: uuid.UUID, form_data: UpdateApplicantProfileReq
     if not result:
         raise HTTPException(status_code=400, detail="Applicant profile could not be updated")
     return {"detail": "Applicant profile updated"}
+
+
+@router.patch("/update-applicant-experience/{experience_id}", status_code=status.HTTP_200_OK)
+def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest):
+    experience = get_applicant_experience(experience_id)
+    if not experience:
+        raise HTTPException(status_code=404, detail="Applicant experience not found!")
+    result = update_applicant_experience(experience_id, form_data)
+    if not result:
+        raise HTTPException(status_code=400, detail="Applicant experience could be updated!")
+    return {"detail": "Experience updated"}

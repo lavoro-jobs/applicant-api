@@ -3,7 +3,7 @@ from typing import List, Union
 
 from lavoro_applicant_api.database import db
 from lavoro_library.models import ApplicantProfileInDB, CreateExperienceRequest, Gender, Experience, \
-    Point, UpdateApplicantProfileRequest
+    Point, UpdateApplicantProfileRequest, UpdateApplicantExperienceRequest, ExperienceInDB
 
 
 def get_applicant_profile(account_id: uuid.UUID):
@@ -16,7 +16,15 @@ def get_applicant_profile(account_id: uuid.UUID):
 
 
 def get_applicant_experiences(account_id: uuid.UUID):
-    query_tuple = ("SELECT * FROM experiences WHERE account_id = %s", (account_id,))
+    query_tuple = ("SELECT * FROM experiences WHERE applicant_account_id = %s", (account_id,))
+    result = db.execute_one(query_tuple)
+    if result["result"]:
+        return [Experience(**experience) for experience in result["result"]]
+    else:
+        return []
+
+def get_applicant_experience(experience_id: uuid.UUID):
+    query_tuple = ("SELECT * FROM experiences WHERE id = %s", (experience_id,))
     result = db.execute_one(query_tuple)
     if result["result"]:
         return [Experience(**experience) for experience in result["result"]]
@@ -25,6 +33,22 @@ def get_applicant_experiences(account_id: uuid.UUID):
 
 
 def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest):
+    result = update_model("experiences", account_id, form_data)
+
+    if result["result"]:
+        return ExperienceInDB(**result["result"][0])
+    return None
+
+
+def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest):
+    result = update_model("experiences", experience_id, form_data)
+
+    if result["result"]:
+        return ExperienceInDB(**result["result"][0])
+    return None
+
+
+def update_model(table_name: str, id: uuid.UUID, form_data):
     update_fields = []
     query_params = []
 
@@ -33,14 +57,11 @@ def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantPr
             update_fields.append(f"{field} = %s")
             query_params.append(value)
 
-
-    query_params.append(account_id)
-    query = f"UPDATE applicant_profiles SET {', '.join(update_fields)} WHERE account_id = %s RETURNING *"
+    query_params.append(id)
+    query = f"UPDATE {table_name} SET {', '.join(update_fields)} WHERE id = %s RETURNING *"
     result = db.execute_one((query, tuple(query_params)))
 
-    if result["result"]:
-        return ApplicantProfileInDB(**result["result"][0])
-    return None
+    return result
 
 
 def insert_applicant_profile(
