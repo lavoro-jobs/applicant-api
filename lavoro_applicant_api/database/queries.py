@@ -33,22 +33,32 @@ def get_applicant_experience(experience_id: uuid.UUID):
 
 
 def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest):
-    result = update_model("experiences", account_id, form_data)
+    prepare_tuple = prepare_fields(account_id, form_data)
+    update_fields = prepare_tuple[0]
+    query_params = prepare_tuple[1]
+
+    query = f"UPDATE applicant_profiles SET {', '.join(update_fields)} WHERE account_id = %s RETURNING *"
+    result = db.execute_one((query, tuple(query_params)))
 
     if result["result"]:
-        return ExperienceInDB(**result["result"][0])
+        return ApplicantProfileInDB(**result["result"][0])
     return None
 
 
 def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest):
-    result = update_model("experiences", experience_id, form_data)
+    prepare_tuple = prepare_fields(experience_id, form_data)
+    update_fields = prepare_tuple[0]
+    query_params = prepare_tuple[1]
+
+    query = f"UPDATE experiences SET {', '.join(update_fields)} WHERE id = %s RETURNING *"
+    result = db.execute_one((query, tuple(query_params)))
 
     if result["result"]:
         return ExperienceInDB(**result["result"][0])
     return None
 
 
-def update_model(table_name: str, id: uuid.UUID, form_data):
+def prepare_fields(id: uuid.UUID, form_data):
     update_fields = []
     query_params = []
 
@@ -58,10 +68,7 @@ def update_model(table_name: str, id: uuid.UUID, form_data):
             query_params.append(value)
 
     query_params.append(id)
-    query = f"UPDATE {table_name} SET {', '.join(update_fields)} WHERE id = %s RETURNING *"
-    result = db.execute_one((query, tuple(query_params)))
-
-    return result
+    return update_fields, query_params
 
 
 def insert_applicant_profile(
