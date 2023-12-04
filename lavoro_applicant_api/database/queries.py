@@ -4,7 +4,6 @@ from typing import List, Union
 
 from lavoro_applicant_api.database import db
 from lavoro_library.models import (
-    ApplicantProfile,
     ApplicantProfileInDB,
     CreateExperienceRequest,
     Gender,
