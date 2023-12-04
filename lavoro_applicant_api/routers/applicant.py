@@ -37,7 +37,6 @@ def update_applicant(account_id: uuid.UUID, form_data: UpdateApplicantProfileReq
     applicant_profile = get_applicant_profile(account_id)
     if not applicant_profile:
         raise HTTPException(status_code=404, detail="Applicant profile not found")
-    print("a")
     result = update_applicant_profile(account_id, form_data)
     if not result:
         raise HTTPException(status_code=400, detail="Applicant profile could not be updated")
