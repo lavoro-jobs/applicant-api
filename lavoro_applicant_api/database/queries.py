@@ -5,7 +5,6 @@ from lavoro_applicant_api.database import db
 from lavoro_library.models import ApplicantProfileInDB, CreateExperienceRequest, Gender, Experience, \
     Point, UpdateApplicantProfileRequest, UpdateApplicantExperienceRequest, ExperienceInDB
 
-
 def get_applicant_profile(account_id: uuid.UUID):
     query_tuple = ("SELECT * FROM applicant_profiles WHERE account_id = %s", (account_id,))
     result = db.execute_one(query_tuple)
@@ -63,7 +62,12 @@ def prepare_fields(id: uuid.UUID, form_data):
     query_params = []
 
     for field, value in form_data.model_dump(exclude_unset=True).items():
-        if value is not None:
+        if field == "home_location" and value is not None:
+            update_fields.append(f"{field} = point(%s, %s)")
+            longitude = value.get("longitude")
+            latitude = value.get("latitude")
+            query_params.extend([longitude, latitude])
+        elif value is not None:
             update_fields.append(f"{field} = %s")
             query_params.append(value)
 
