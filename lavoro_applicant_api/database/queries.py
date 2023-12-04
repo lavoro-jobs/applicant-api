@@ -2,7 +2,8 @@ import uuid
 from typing import List, Union
 
 from lavoro_applicant_api.database import db
-from lavoro_library.models import ApplicantProfile, ApplicantProfileInDB,  CreateExperienceRequest, Gender, Experience, Point
+from lavoro_library.models import ApplicantProfileInDB, CreateExperienceRequest, Gender, Experience, \
+    Point, UpdateApplicantProfileRequest
 
 
 def get_applicant_profile(account_id: uuid.UUID):
@@ -21,6 +22,25 @@ def get_applicant_experiences(account_id: uuid.UUID):
         return [Experience(**experience) for experience in result["result"]]
     else:
         return []
+
+
+def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest):
+    update_fields = []
+    query_params = []
+
+    for field, value in form_data.model_dump(exclude_unset=True).items():
+        if value is not None:
+            update_fields.append(f"{field} = %s")
+            query_params.append(value)
+
+
+    query_params.append(account_id)
+    query = f"UPDATE applicant_profiles SET {', '.join(update_fields)} WHERE account_id = %s RETURNING *"
+    result = db.execute_one((query, tuple(query_params)))
+
+    if result["result"]:
+        return ApplicantProfileInDB(**result["result"][0])
+    return None
 
 
 def insert_applicant_profile(
