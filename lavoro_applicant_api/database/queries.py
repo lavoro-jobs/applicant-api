@@ -57,6 +57,13 @@ def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateAppli
     return None
 
 
+def delete_applicant_experience(experience_id: uuid.UUID):
+    query_tuple = ("DELETE FROM experiences WHERE id = %s", (experience_id,))
+    result = db.execute_one(query_tuple)
+    if result["affected_rows"]:
+        return result["affected_rows"]
+    return None
+
 def prepare_fields(id: uuid.UUID, form_data):
     update_fields = []
     query_params = []

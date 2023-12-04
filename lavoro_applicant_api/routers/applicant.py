@@ -4,7 +4,7 @@ from fastapi import APIRouter, status, HTTPException
 
 from lavoro_applicant_api.helpers.applicant_helpers import create_applicant_profile
 from lavoro_applicant_api.database.queries import get_applicant_experiences, get_applicant_profile, \
-    update_applicant_profile, update_applicant_experience, get_applicant_experience
+    update_applicant_profile, update_applicant_experience, get_applicant_experience, delete_applicant_experience
 
 from lavoro_library.models import CreateApplicantProfileRequest, UpdateApplicantProfileRequest, UpdateApplicantExperienceRequest
 
@@ -50,5 +50,16 @@ def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperi
         raise HTTPException(status_code=404, detail="Applicant experience not found!")
     result = update_applicant_experience(experience_id, form_data)
     if not result:
-        raise HTTPException(status_code=400, detail="Applicant experience could be updated!")
+        raise HTTPException(status_code=400, detail="Applicant experience could not be updated!")
     return {"detail": "Experience updated"}
+
+
+@router.delete("/delete-applicant-experience/{experience_id}", status_code=status.HTTP_200_OK)
+def delete_experience(experience_id: uuid.UUID):
+    experience = get_applicant_experience(experience_id)
+    if not experience:
+        raise HTTPException(status_code=404, detail="Applicant experience not found!")
+    result = delete_applicant_experience(experience_id)
+    if not result:
+        raise HTTPException(status_code=400, detail="Applicant experience could not be deleted!")
+    return {"detail": "Experience deleted"}
