@@ -32,7 +32,7 @@ def get_applicant(account_id: uuid.UUID):
     return applicant_profile
 
 
-@router.put("/update-applicant-profile/{account_id}", status_code=status.HTTP_200_OK)
+@router.patch("/update-applicant-profile/{account_id}", status_code=status.HTTP_200_OK)
 def update_applicant(account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest):
     applicant_profile = get_applicant_profile(account_id)
     if not applicant_profile:
