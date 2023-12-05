@@ -1,3 +1,4 @@
+import base64
 import uuid
 from typing import List, Union
 
@@ -116,38 +117,51 @@ def insert_applicant_profile(
     contract_type_id: int,
     min_salary: float,
 ):
-    query = """
-        INSERT INTO applicant_profiles (
-            first_name, last_name, education_level_id, age, gender, skill_id_list, account_id,
-            work_type_id, seniority_level_id, position_id, home_location, work_location_max_distance,
-            contract_type_id, min_salary)
-        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+    # Common columns and values
+    columns = [
+        "first_name",
+        "last_name",
+        "education_level_id",
+        "age",
+        "gender",
+        "skill_id_list",
+        "account_id",
+        "work_type_id",
+        "seniority_level_id",
+        "position_id",
+        "home_location",
+        "work_location_max_distance",
+        "contract_type_id",
+        "min_salary",
+    ]
+    values = [
+        first_name,
+        last_name,
+        education_level_id,
+        age,
+        gender,
+        skill_id_list,
+        account_id,
+        work_type_id,
+        seniority_level_id,
+        position_id,
+        (home_location.get("longitude"), home_location.get("latitude")),
+        work_location_max_distance,
+        contract_type_id,
+        min_salary,
+    ]
+
+    if cv:
+        columns.append("cv")
+        values.append(base64.b64decode(cv))
+
+    query = f"""
+        INSERT INTO applicant_profiles ({', '.join(columns)})
+        VALUES ({', '.join(['%s'] * len(values))})
         RETURNING *
         """
 
-    point = (home_location.get("longitude"), home_location.get("latitude"))
-
-    query_tuple = (
-        query,
-        (
-            first_name,
-            last_name,
-            education_level_id,
-            age,
-            gender,
-            skill_id_list,
-            account_id,
-            work_type_id,
-            seniority_level_id,
-            position_id,
-            point,
-            work_location_max_distance,
-            contract_type_id,
-            min_salary,
-        ),
-    )
-
-    result = db.execute_one(query_tuple)
+    result = db.execute_one((query, tuple(values)))
     if result["result"]:
         return ApplicantProfileInDB(**result["result"][0])
     return None
