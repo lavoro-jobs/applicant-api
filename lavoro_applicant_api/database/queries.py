@@ -9,11 +9,17 @@ from lavoro_library.models import (
     Gender,
     Experience,
     Point,
+    UpdateApplicantProfileRequest,
+    UpdateApplicantExperienceRequest,
+    ExperienceInDB,
 )
 
 
 def get_applicant_profile(account_id: uuid.UUID):
-    query_tuple = ("SELECT * FROM applicant_profiles WHERE account_id = %s", (account_id,))
+    query_tuple = (
+        "SELECT * FROM applicant_profiles WHERE account_id = %s",
+        (account_id,),
+    )
     result = db.execute_one(query_tuple)
     if result["result"]:
         return ApplicantProfileInDB(**result["result"][0])
@@ -22,12 +28,76 @@ def get_applicant_profile(account_id: uuid.UUID):
 
 
 def get_applicant_experiences(account_id: uuid.UUID):
-    query_tuple = ("SELECT * FROM experiences WHERE account_id = %s", (account_id,))
+    query_tuple = (
+        "SELECT * FROM experiences WHERE applicant_account_id = %s",
+        (account_id,),
+    )
     result = db.execute_one(query_tuple)
     if result["result"]:
         return [Experience(**experience) for experience in result["result"]]
     else:
         return []
+
+
+def get_applicant_experience(experience_id: uuid.UUID):
+    query_tuple = ("SELECT * FROM experiences WHERE id = %s", (experience_id,))
+    result = db.execute_one(query_tuple)
+    if result["result"]:
+        return [Experience(**experience) for experience in result["result"]]
+    else:
+        return []
+
+
+def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest):
+    prepare_tuple = prepare_fields(account_id, form_data)
+    update_fields = prepare_tuple[0]
+    query_params = prepare_tuple[1]
+
+    query = f"UPDATE applicant_profiles SET {', '.join(update_fields)} WHERE account_id = %s RETURNING *"
+    result = db.execute_one((query, tuple(query_params)))
+
+    if result["result"]:
+        return ApplicantProfileInDB(**result["result"][0])
+    return None
+
+
+def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest):
+    prepare_tuple = prepare_fields(experience_id, form_data)
+    update_fields = prepare_tuple[0]
+    query_params = prepare_tuple[1]
+
+    query = f"UPDATE experiences SET {', '.join(update_fields)} WHERE id = %s RETURNING *"
+    result = db.execute_one((query, tuple(query_params)))
+
+    if result["result"]:
+        return ExperienceInDB(**result["result"][0])
+    return None
+
+
+def delete_applicant_experience(experience_id: uuid.UUID):
+    query_tuple = ("DELETE FROM experiences WHERE id = %s", (experience_id,))
+    result = db.execute_one(query_tuple)
+    if result["affected_rows"]:
+        return result["affected_rows"]
+    return None
+
+
+def prepare_fields(id: uuid.UUID, form_data):
+    update_fields = []
+    query_params = []
+
+    for field, value in form_data.model_dump(exclude_unset=True).items():
+        if field == "home_location" and value is not None:
+            update_fields.append(f"{field} = point(%s, %s)")
+            longitude = value.get("longitude")
+            latitude = value.get("latitude")
+            query_params.extend([longitude, latitude])
+        elif value is not None:
+            update_fields.append(f"{field} = %s")
+            query_params.append(value)
+
+    query_params.append(id)
+    return update_fields, query_params
 
 
 def insert_applicant_profile(
@@ -104,7 +174,15 @@ def insert_experiences(experiences: List[CreateExperienceRequest], applicant_acc
         """
 
     query_tuple_list = [
-        (query, (experience.company_name, experience.position_id, experience.years, applicant_account_id))
+        (
+            query,
+            (
+                experience.company_name,
+                experience.position_id,
+                experience.years,
+                applicant_account_id,
+            ),
+        )
         for experience in experiences
     ]
 
