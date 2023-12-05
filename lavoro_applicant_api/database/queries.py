@@ -47,9 +47,7 @@ def get_applicant_experience(experience_id: uuid.UUID):
         return []
 
 
-def update_applicant_profile(
-    account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest
-):
+def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest):
     prepare_tuple = prepare_fields(account_id, form_data)
     update_fields = prepare_tuple[0]
     query_params = prepare_tuple[1]
@@ -62,16 +60,12 @@ def update_applicant_profile(
     return None
 
 
-def update_applicant_experience(
-    experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest
-):
+def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest):
     prepare_tuple = prepare_fields(experience_id, form_data)
     update_fields = prepare_tuple[0]
     query_params = prepare_tuple[1]
 
-    query = (
-        f"UPDATE experiences SET {', '.join(update_fields)} WHERE id = %s RETURNING *"
-    )
+    query = f"UPDATE experiences SET {', '.join(update_fields)} WHERE id = %s RETURNING *"
     result = db.execute_one((query, tuple(query_params)))
 
     if result["result"]:
@@ -159,9 +153,7 @@ def insert_applicant_profile(
     return None
 
 
-def insert_experiences(
-    experiences: List[CreateExperienceRequest], applicant_account_id: uuid.UUID
-):
+def insert_experiences(experiences: List[CreateExperienceRequest], applicant_account_id: uuid.UUID):
     query = """
         INSERT INTO experiences (company_name, position_id, years, applicant_account_id)
         VALUES (%s, %s, %s, %s)

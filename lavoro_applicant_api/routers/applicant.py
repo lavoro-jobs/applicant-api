@@ -21,18 +21,14 @@ from lavoro_library.models import (
 router = APIRouter(prefix="/applicant", tags=["applicant"])
 
 
-@router.post(
-    "/create-applicant-profile/{account_id}", status_code=status.HTTP_201_CREATED
-)
+@router.post("/create-applicant-profile/{account_id}", status_code=status.HTTP_201_CREATED)
 def create_applicant(account_id: uuid.UUID, form_data: CreateApplicantProfileRequest):
     applicant_profile = get_applicant_profile(account_id)
     if applicant_profile:
         raise HTTPException(status_code=400, detail="Applicant profile already exists")
     result = create_applicant_profile(account_id, form_data)
     if not result:
-        raise HTTPException(
-            status_code=400, detail="Applicant profile could not be created"
-        )
+        raise HTTPException(status_code=400, detail="Applicant profile could not be created")
     return {"detail": "Applicant profile created"}
 
 
@@ -53,39 +49,27 @@ def update_applicant(account_id: uuid.UUID, form_data: UpdateApplicantProfileReq
         raise HTTPException(status_code=404, detail="Applicant profile not found")
     result = update_applicant_profile(account_id, form_data)
     if not result:
-        raise HTTPException(
-            status_code=400, detail="Applicant profile could not be updated"
-        )
+        raise HTTPException(status_code=400, detail="Applicant profile could not be updated")
     return {"detail": "Applicant profile updated"}
 
 
-@router.patch(
-    "/update-applicant-experience/{experience_id}", status_code=status.HTTP_200_OK
-)
-def update_experience(
-    experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest
-):
+@router.patch("/update-applicant-experience/{experience_id}", status_code=status.HTTP_200_OK)
+def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest):
     experience = get_applicant_experience(experience_id)
     if not experience:
         raise HTTPException(status_code=404, detail="Applicant experience not found!")
     result = update_applicant_experience(experience_id, form_data)
     if not result:
-        raise HTTPException(
-            status_code=400, detail="Applicant experience could not be updated"
-        )
+        raise HTTPException(status_code=400, detail="Applicant experience could not be updated!")
     return {"detail": "Experience updated"}
 
 
-@router.delete(
-    "/delete-applicant-experience/{experience_id}", status_code=status.HTTP_200_OK
-)
+@router.delete("/delete-applicant-experience/{experience_id}", status_code=status.HTTP_200_OK)
 def delete_experience(experience_id: uuid.UUID):
     experience = get_applicant_experience(experience_id)
     if not experience:
         raise HTTPException(status_code=404, detail="Applicant experience not found!")
     result = delete_applicant_experience(experience_id)
     if not result:
-        raise HTTPException(
-            status_code=400, detail="Applicant experience could not be deleted"
-        )
+        raise HTTPException(status_code=400, detail="Applicant experience could not be deleted!")
     return {"detail": "Experience deleted"}

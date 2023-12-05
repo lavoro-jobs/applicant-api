@@ -1,4 +1,7 @@
-from lavoro_applicant_api.database.queries import insert_applicant_profile, insert_experiences
+from lavoro_applicant_api.database.queries import (
+    insert_applicant_profile,
+    insert_experiences,
+)
 from lavoro_library.models import CreateApplicantProfileRequest
 
 
