@@ -2,8 +2,16 @@ import uuid
 from typing import List, Union
 
 from lavoro_applicant_api.database import db
-from lavoro_library.models import ApplicantProfileInDB, CreateExperienceRequest, Gender, Experience, \
-    Point, UpdateApplicantProfileRequest, UpdateApplicantExperienceRequest, ExperienceInDB
+from lavoro_library.models import (
+    ApplicantProfileInDB,
+    CreateExperienceRequest,
+    Gender,
+    Experience,
+    Point,
+    UpdateApplicantProfileRequest,
+    UpdateApplicantExperienceRequest,
+    ExperienceInDB
+)
 
 def get_applicant_profile(account_id: uuid.UUID):
     query_tuple = ("SELECT * FROM applicant_profiles WHERE account_id = %s", (account_id,))
@@ -63,6 +71,7 @@ def delete_applicant_experience(experience_id: uuid.UUID):
     if result["affected_rows"]:
         return result["affected_rows"]
     return None
+
 
 def prepare_fields(id: uuid.UUID, form_data):
     update_fields = []
