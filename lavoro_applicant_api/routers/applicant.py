@@ -8,21 +8,29 @@ from lavoro_applicant_api.database.queries import (
     get_applicant_profile,
     update_applicant_profile,
     update_applicant_experience,
-    get_applicant_experience,
     delete_applicant_experience,
 )
 
-from lavoro_library.models import (
-    CreateApplicantProfileRequest,
-    UpdateApplicantProfileRequest,
-    UpdateApplicantExperienceRequest,
+# from lavoro_library.models import (
+#     CreateApplicantProfileRequest,
+#     UpdateApplicantProfileRequest,
+#     UpdateApplicantExperienceRequest,
+# )
+
+from lavoro_library.model.applicant_api.db_models import ApplicantProfile, Experience
+
+from lavoro_library.model.applicant_api.dtos import (
+    ApplicantProfileDTO,
+    CreateApplicantProfileDTO,
+    UpdateApplicantProfileDTO,
+    UpdateApplicantExperienceDTO,
 )
 
 router = APIRouter(prefix="/applicant", tags=["applicant"])
 
 
 @router.post("/create-applicant-profile/{account_id}", status_code=status.HTTP_201_CREATED)
-def create_applicant(account_id: uuid.UUID, form_data: CreateApplicantProfileRequest):
+def create_applicant(account_id: uuid.UUID, form_data: CreateApplicantProfileDTO):
     applicant_profile = get_applicant_profile(account_id)
     if applicant_profile:
         raise HTTPException(status_code=400, detail="Applicant profile already exists")
@@ -35,15 +43,21 @@ def create_applicant(account_id: uuid.UUID, form_data: CreateApplicantProfileReq
 @router.get("/get-applicant-profile/{account_id}")
 def get_applicant(account_id: uuid.UUID):
     applicant_profile = get_applicant_profile(account_id)
-    experiences = get_applicant_experiences(applicant_profile.account_id)
-    applicant_profile.experiences = experiences
     if not applicant_profile:
         raise HTTPException(status_code=404, detail="Applicant profile not found")
     return applicant_profile
 
 
+@router.get("/get-experiences/{account_id}")
+def get_experiences(account_id: uuid.UUID):
+    experiences = get_applicant_experiences(account_id)
+    if not experiences:
+        raise HTTPException(status_code=404, detail="Applicant experiences not found")
+    return experiences
+
+
 @router.patch("/update-applicant-profile/{account_id}", status_code=status.HTTP_200_OK)
-def update_applicant(account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest):
+def update_applicant(account_id: uuid.UUID, form_data: UpdateApplicantProfileDTO):
     applicant_profile = get_applicant_profile(account_id)
     if not applicant_profile:
         raise HTTPException(status_code=404, detail="Applicant profile not found")
@@ -54,8 +68,8 @@ def update_applicant(account_id: uuid.UUID, form_data: UpdateApplicantProfileReq
 
 
 @router.patch("/update-applicant-experience/{experience_id}", status_code=status.HTTP_200_OK)
-def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest):
-    experience = get_applicant_experience(experience_id)
+def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceDTO):
+    experience = get_applicant_experiences(experience_id)
     if not experience:
         raise HTTPException(status_code=404, detail="Applicant experience not found!")
     result = update_applicant_experience(experience_id, form_data)
@@ -66,7 +80,7 @@ def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperi
 
 @router.delete("/delete-applicant-experience/{experience_id}", status_code=status.HTTP_200_OK)
 def delete_experience(experience_id: uuid.UUID):
-    experience = get_applicant_experience(experience_id)
+    experience = get_applicant_experiences(experience_id)
     if not experience:
         raise HTTPException(status_code=404, detail="Applicant experience not found!")
     result = delete_applicant_experience(experience_id)

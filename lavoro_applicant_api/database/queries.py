@@ -3,16 +3,26 @@ import uuid
 from typing import List, Union
 
 from lavoro_applicant_api.database import db
-from lavoro_library.models import (
-    ApplicantProfileInDB,
-    CreateExperienceRequest,
-    Gender,
-    Experience,
-    Point,
-    UpdateApplicantProfileRequest,
-    UpdateApplicantExperienceRequest,
-    ExperienceInDB,
+
+# from lavoro_library.models import (
+#     ApplicantProfileInDB,
+#     CreateExperienceRequest,
+#     Gender,
+#     Experience,
+#     Point,
+#     UpdateApplicantProfileRequest,
+#     UpdateApplicantExperienceRequest,
+#     ExperienceInDB,
+# )
+
+from lavoro_library.model.applicant_api.db_models import ApplicantProfile, Experience, Gender
+from lavoro_library.model.applicant_api.dtos import (
+    CreateApplicantProfileDTO,
+    CreateExperienceDTO,
+    UpdateApplicantProfileDTO,
+    UpdateApplicantExperienceDTO,
 )
+from lavoro_library.model.shared import Point
 
 
 def get_applicant_profile(account_id: uuid.UUID):
@@ -22,7 +32,7 @@ def get_applicant_profile(account_id: uuid.UUID):
     )
     result = db.execute_one(query_tuple)
     if result["result"]:
-        return ApplicantProfileInDB(**result["result"][0])
+        return ApplicantProfile(**result["result"][0])
     else:
         return None
 
@@ -39,16 +49,7 @@ def get_applicant_experiences(account_id: uuid.UUID):
         return []
 
 
-def get_applicant_experience(experience_id: uuid.UUID):
-    query_tuple = ("SELECT * FROM experiences WHERE id = %s", (experience_id,))
-    result = db.execute_one(query_tuple)
-    if result["result"]:
-        return [Experience(**experience) for experience in result["result"]]
-    else:
-        return []
-
-
-def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest):
+def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantProfileDTO):
     prepare_tuple = prepare_fields(account_id, form_data)
     update_fields = prepare_tuple[0]
     query_params = prepare_tuple[1]
@@ -57,11 +58,11 @@ def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantPr
     result = db.execute_one((query, tuple(query_params)))
 
     if result["result"]:
-        return ApplicantProfileInDB(**result["result"][0])
+        return ApplicantProfile(**result["result"][0])
     return None
 
 
-def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest):
+def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceDTO):
     prepare_tuple = prepare_fields(experience_id, form_data)
     update_fields = prepare_tuple[0]
     query_params = prepare_tuple[1]
@@ -70,7 +71,7 @@ def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateAppli
     result = db.execute_one((query, tuple(query_params)))
 
     if result["result"]:
-        return ExperienceInDB(**result["result"][0])
+        return Experience(**result["result"][0])
     return None
 
 
@@ -107,10 +108,10 @@ def insert_applicant_profile(
     education_level_id: int,
     age: int,
     gender: Gender,
-    skill_id_list: List[int],
+    skill_ids: List[int],
     cv: Union[bytes, None],
     work_type_id: int,
-    seniority_level_id: int,
+    seniority_level: int,
     position_id: int,
     home_location: Point,
     work_location_max_distance: int,
@@ -124,10 +125,10 @@ def insert_applicant_profile(
         "education_level_id",
         "age",
         "gender",
-        "skill_id_list",
+        "skill_ids",
         "account_id",
         "work_type_id",
-        "seniority_level_id",
+        "seniority_level",
         "position_id",
         "home_location",
         "work_location_max_distance",
@@ -140,10 +141,10 @@ def insert_applicant_profile(
         education_level_id,
         age,
         gender,
-        skill_id_list,
+        skill_ids,
         account_id,
         work_type_id,
-        seniority_level_id,
+        seniority_level,
         position_id,
         (home_location.get("longitude"), home_location.get("latitude")),
         work_location_max_distance,
@@ -163,11 +164,11 @@ def insert_applicant_profile(
 
     result = db.execute_one((query, tuple(values)))
     if result["result"]:
-        return ApplicantProfileInDB(**result["result"][0])
+        return ApplicantProfile(**result["result"][0])
     return None
 
 
-def insert_experiences(experiences: List[CreateExperienceRequest], applicant_account_id: uuid.UUID):
+def insert_experiences(experiences: List[CreateExperienceDTO], applicant_account_id: uuid.UUID):
     query = """
         INSERT INTO experiences (company_name, position_id, years, applicant_account_id)
         VALUES (%s, %s, %s, %s)
