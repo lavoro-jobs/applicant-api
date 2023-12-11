@@ -22,7 +22,9 @@ def get_applicant_profile(account_id: uuid.UUID):
     )
     result = db.execute_one(query_tuple)
     if result["result"]:
-        return ApplicantProfileInDB(**result["result"][0])
+        applicant_profile_in_db = ApplicantProfileInDB(**result["result"][0])
+        applicant_profile_in_db.cv = base64.b64encode(applicant_profile_in_db.cv).decode("utf-8")
+        return applicant_profile_in_db
     else:
         return None
 
@@ -57,7 +59,9 @@ def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantPr
     result = db.execute_one((query, tuple(query_params)))
 
     if result["result"]:
-        return ApplicantProfileInDB(**result["result"][0])
+        applicant_profile_in_db = ApplicantProfileInDB(**result["result"][0])
+        applicant_profile_in_db.cv = base64.b64encode(applicant_profile_in_db.cv).decode("utf-8")
+        return applicant_profile_in_db
     return None
 
 
@@ -108,7 +112,7 @@ def insert_applicant_profile(
     age: int,
     gender: Gender,
     skill_id_list: List[int],
-    cv: Union[bytes, None],
+    cv: Union[str, None],
     work_type_id: int,
     seniority_level_id: int,
     position_id: int,
