@@ -110,7 +110,7 @@ def create_applicant_profile(
     age: int,
     gender: Gender,
     skill_ids: List[int],
-    cv: Union[bytes, None],
+    cv: Union[str, None],
     work_type_id: int,
     seniority_level: int,
     position_id: int,
