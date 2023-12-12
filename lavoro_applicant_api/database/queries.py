@@ -3,18 +3,6 @@ import uuid
 from typing import List, Union
 
 from lavoro_applicant_api.database import db
-
-# from lavoro_library.models import (
-#     ApplicantProfileInDB,
-#     CreateExperienceRequest,
-#     Gender,
-#     Experience,
-#     Point,
-#     UpdateApplicantProfileRequest,
-#     UpdateApplicantExperienceRequest,
-#     ExperienceInDB,
-# )
-
 from lavoro_library.model.applicant_api.db_models import ApplicantProfile, Experience, Gender
 from lavoro_library.model.applicant_api.dtos import (
     CreateExperienceDTO,
@@ -123,7 +111,6 @@ def create_applicant_profile(
     contract_type_id: int,
     min_salary: float,
 ):
-    # Common columns and values
     columns = [
         "first_name",
         "last_name",

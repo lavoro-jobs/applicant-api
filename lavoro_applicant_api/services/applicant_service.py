@@ -26,10 +26,6 @@ def create_applicant_profile(account_id: uuid.UUID, form_data: CreateApplicantPr
     result = queries.create_applicant_profile(account_id, **applicant_profile)
     if not result:
         raise HTTPException(status_code=400, detail="Applicant profile could not be created")
-    # if form_data.experiences:
-    #     result = queries.create_experiences(account_id, form_data.experiences)
-    #     if not result:
-    #         raise HTTPException(status_code=400, detail="Applicant experiences could not be created")
     return result
 
 
