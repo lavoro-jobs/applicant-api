@@ -17,7 +17,6 @@ from lavoro_applicant_api.database import db
 
 from lavoro_library.model.applicant_api.db_models import ApplicantProfile, Experience, Gender
 from lavoro_library.model.applicant_api.dtos import (
-    CreateApplicantProfileDTO,
     CreateExperienceDTO,
     UpdateApplicantProfileDTO,
     UpdateApplicantExperienceDTO,
@@ -62,7 +61,7 @@ def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantPr
     return None
 
 
-def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceDTO):
+def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceDTO):
     prepare_tuple = prepare_fields(experience_id, form_data)
     update_fields = prepare_tuple[0]
     query_params = prepare_tuple[1]
@@ -75,7 +74,7 @@ def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateAppli
     return None
 
 
-def delete_applicant_experience(experience_id: uuid.UUID):
+def delete_experience(experience_id: uuid.UUID):
     query_tuple = ("DELETE FROM experiences WHERE id = %s", (experience_id,))
     result = db.execute_one(query_tuple)
     if result["affected_rows"]:
@@ -83,17 +82,19 @@ def delete_applicant_experience(experience_id: uuid.UUID):
     return None
 
 
-def prepare_fields(id: uuid.UUID, form_data):
+def prepare_fields(id: uuid.UUID, form_data: Union[UpdateApplicantProfileDTO, UpdateApplicantExperienceDTO]):
     update_fields = []
     query_params = []
 
     for field, value in form_data.model_dump(exclude_unset=True).items():
-        if field == "home_location" and value is not None:
+        if field == "home_location":
             update_fields.append(f"{field} = point(%s, %s)")
             longitude = value.get("longitude")
             latitude = value.get("latitude")
             query_params.extend([longitude, latitude])
-        elif value is not None:
+        else:
+            if field == "cv":
+                value = base64.b64decode(value)
             update_fields.append(f"{field} = %s")
             query_params.append(value)
 
@@ -101,7 +102,7 @@ def prepare_fields(id: uuid.UUID, form_data):
     return update_fields, query_params
 
 
-def insert_applicant_profile(
+def create_applicant_profile(
     account_id: uuid.UUID,
     first_name: str,
     last_name: str,
@@ -168,7 +169,7 @@ def insert_applicant_profile(
     return None
 
 
-def insert_experiences(experiences: List[CreateExperienceDTO], applicant_account_id: uuid.UUID):
+def create_experiences(applicant_account_id, experiences: List[CreateExperienceDTO]):
     query = """
         INSERT INTO experiences (company_name, position_id, years, applicant_account_id)
         VALUES (%s, %s, %s, %s)
