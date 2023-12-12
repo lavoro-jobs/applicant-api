@@ -74,7 +74,7 @@ def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperi
     return None
 
 
-def delete_experience(experience_id: uuid.UUID):
+def delete_applicant_experience(experience_id: uuid.UUID):
     query_tuple = ("DELETE FROM experiences WHERE id = %s", (experience_id,))
     result = db.execute_one(query_tuple)
     if result["affected_rows"]:
@@ -87,13 +87,17 @@ def prepare_fields(id: uuid.UUID, form_data: Union[UpdateApplicantProfileDTO, Up
     query_params = []
 
     for field, value in form_data.model_dump(exclude_unset=True).items():
+        if value is None:
+            continue
+        if value == "":
+            value = None
         if field == "home_location":
             update_fields.append(f"{field} = point(%s, %s)")
             longitude = value.get("longitude")
             latitude = value.get("latitude")
             query_params.extend([longitude, latitude])
         else:
-            if field == "cv":
+            if field == "cv" and value is not None:
                 value = base64.b64decode(value)
             update_fields.append(f"{field} = %s")
             query_params.append(value)
