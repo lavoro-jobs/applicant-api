@@ -3,16 +3,13 @@ import uuid
 from typing import List, Union
 
 from lavoro_applicant_api.database import db
-from lavoro_library.models import (
-    ApplicantProfileInDB,
-    CreateExperienceRequest,
-    Gender,
-    Experience,
-    Point,
-    UpdateApplicantProfileRequest,
-    UpdateApplicantExperienceRequest,
-    ExperienceInDB,
+from lavoro_library.model.applicant_api.db_models import ApplicantProfile, Experience, Gender
+from lavoro_library.model.applicant_api.dtos import (
+    CreateExperienceDTO,
+    UpdateApplicantProfileDTO,
+    UpdateApplicantExperienceDTO,
 )
+from lavoro_library.model.shared import Point
 
 
 def get_applicant_profile(account_id: uuid.UUID):
@@ -22,9 +19,7 @@ def get_applicant_profile(account_id: uuid.UUID):
     )
     result = db.execute_one(query_tuple)
     if result["result"]:
-        applicant_profile_in_db = ApplicantProfileInDB(**result["result"][0])
-        applicant_profile_in_db.cv = base64.b64encode(applicant_profile_in_db.cv).decode("utf-8")
-        return applicant_profile_in_db
+        return ApplicantProfile(**result["result"][0])
     else:
         return None
 
@@ -41,16 +36,7 @@ def get_applicant_experiences(account_id: uuid.UUID):
         return []
 
 
-def get_applicant_experience(experience_id: uuid.UUID):
-    query_tuple = ("SELECT * FROM experiences WHERE id = %s", (experience_id,))
-    result = db.execute_one(query_tuple)
-    if result["result"]:
-        return [Experience(**experience) for experience in result["result"]]
-    else:
-        return []
-
-
-def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantProfileRequest):
+def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantProfileDTO):
     prepare_tuple = prepare_fields(account_id, form_data)
     update_fields = prepare_tuple[0]
     query_params = prepare_tuple[1]
@@ -59,13 +45,11 @@ def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantPr
     result = db.execute_one((query, tuple(query_params)))
 
     if result["result"]:
-        applicant_profile_in_db = ApplicantProfileInDB(**result["result"][0])
-        applicant_profile_in_db.cv = base64.b64encode(applicant_profile_in_db.cv).decode("utf-8")
-        return applicant_profile_in_db
+        return ApplicantProfile(**result["result"][0])
     return None
 
 
-def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceRequest):
+def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceDTO):
     prepare_tuple = prepare_fields(experience_id, form_data)
     update_fields = prepare_tuple[0]
     query_params = prepare_tuple[1]
@@ -74,7 +58,7 @@ def update_applicant_experience(experience_id: uuid.UUID, form_data: UpdateAppli
     result = db.execute_one((query, tuple(query_params)))
 
     if result["result"]:
-        return ExperienceInDB(**result["result"][0])
+        return Experience(**result["result"][0])
     return None
 
 
@@ -86,17 +70,23 @@ def delete_applicant_experience(experience_id: uuid.UUID):
     return None
 
 
-def prepare_fields(id: uuid.UUID, form_data):
+def prepare_fields(id: uuid.UUID, form_data: Union[UpdateApplicantProfileDTO, UpdateApplicantExperienceDTO]):
     update_fields = []
     query_params = []
 
     for field, value in form_data.model_dump(exclude_unset=True).items():
-        if field == "home_location" and value is not None:
+        if value is None:
+            continue
+        if value == "":
+            value = None
+        if field == "home_location":
             update_fields.append(f"{field} = point(%s, %s)")
             longitude = value.get("longitude")
             latitude = value.get("latitude")
             query_params.extend([longitude, latitude])
-        elif value is not None:
+        else:
+            if field == "cv" and value is not None:
+                value = base64.b64decode(value)
             update_fields.append(f"{field} = %s")
             query_params.append(value)
 
@@ -104,34 +94,33 @@ def prepare_fields(id: uuid.UUID, form_data):
     return update_fields, query_params
 
 
-def insert_applicant_profile(
+def create_applicant_profile(
     account_id: uuid.UUID,
     first_name: str,
     last_name: str,
     education_level_id: int,
     age: int,
     gender: Gender,
-    skill_id_list: List[int],
+    skill_ids: List[int],
     cv: Union[str, None],
     work_type_id: int,
-    seniority_level_id: int,
+    seniority_level: int,
     position_id: int,
     home_location: Point,
     work_location_max_distance: int,
     contract_type_id: int,
     min_salary: float,
 ):
-    # Common columns and values
     columns = [
         "first_name",
         "last_name",
         "education_level_id",
         "age",
         "gender",
-        "skill_id_list",
+        "skill_ids",
         "account_id",
         "work_type_id",
-        "seniority_level_id",
+        "seniority_level",
         "position_id",
         "home_location",
         "work_location_max_distance",
@@ -144,10 +133,10 @@ def insert_applicant_profile(
         education_level_id,
         age,
         gender,
-        skill_id_list,
+        skill_ids,
         account_id,
         work_type_id,
-        seniority_level_id,
+        seniority_level,
         position_id,
         (home_location.get("longitude"), home_location.get("latitude")),
         work_location_max_distance,
@@ -167,11 +156,11 @@ def insert_applicant_profile(
 
     result = db.execute_one((query, tuple(values)))
     if result["result"]:
-        return ApplicantProfileInDB(**result["result"][0])
+        return ApplicantProfile(**result["result"][0])
     return None
 
 
-def insert_experiences(experiences: List[CreateExperienceRequest], applicant_account_id: uuid.UUID):
+def create_experiences(applicant_account_id, experiences: List[CreateExperienceDTO]):
     query = """
         INSERT INTO experiences (company_name, position_id, years, applicant_account_id)
         VALUES (%s, %s, %s, %s)
