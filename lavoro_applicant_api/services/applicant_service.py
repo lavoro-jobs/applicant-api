@@ -1,9 +1,14 @@
+from typing import List
 import uuid
 
 from fastapi import HTTPException
 
 from lavoro_applicant_api.database import queries
-from lavoro_library.model.applicant_api.dtos import CreateApplicantProfileDTO, UpdateApplicantProfileDTO
+from lavoro_library.model.applicant_api.dtos import (
+    CreateApplicantProfileDTO,
+    CreateExperienceDTO,
+    UpdateApplicantProfileDTO,
+)
 
 
 def get_applicant_profile(account_id: uuid.UUID):
@@ -14,14 +19,24 @@ def get_applicant_profile(account_id: uuid.UUID):
 
 
 def create_applicant_profile(account_id: uuid.UUID, form_data: CreateApplicantProfileDTO):
+    applicant_profile = queries.get_applicant_profile(account_id)
+    if applicant_profile:
+        raise HTTPException(status_code=400, detail="Applicant profile already exists")
     applicant_profile = form_data.model_dump(exclude={"experiences"})
     result = queries.create_applicant_profile(account_id, **applicant_profile)
     if not result:
         raise HTTPException(status_code=400, detail="Applicant profile could not be created")
-    if form_data.experiences:
-        result = queries.create_experiences(account_id, form_data.experiences)
-        if not result:
-            raise HTTPException(status_code=400, detail="Applicant experiences could not be created")
+    # if form_data.experiences:
+    #     result = queries.create_experiences(account_id, form_data.experiences)
+    #     if not result:
+    #         raise HTTPException(status_code=400, detail="Applicant experiences could not be created")
+    return result
+
+
+def create_experiences(account_id: uuid.UUID, form_data: List[CreateExperienceDTO]):
+    result = queries.create_experiences(account_id, form_data)
+    if not result:
+        raise HTTPException(status_code=400, detail="Applicant experiences could not be created")
     return result
 
 

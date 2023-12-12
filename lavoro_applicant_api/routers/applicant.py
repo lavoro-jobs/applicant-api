@@ -1,3 +1,4 @@
+from typing import List
 import uuid
 
 from fastapi import APIRouter, status, HTTPException
@@ -23,6 +24,7 @@ from lavoro_applicant_api.services import applicant_service
 
 from lavoro_library.model.applicant_api.dtos import (
     CreateApplicantProfileDTO,
+    CreateExperienceDTO,
     UpdateApplicantProfileDTO,
     UpdateApplicantExperienceDTO,
 )
@@ -40,6 +42,11 @@ def create_applicant(account_id: uuid.UUID, form_data: CreateApplicantProfileDTO
     # if not result:
     #     raise HTTPException(status_code=400, detail="Applicant profile could not be created")
     # return {"detail": "Applicant profile created"}
+
+
+@router.post("/create-experiences/{account_id}", status_code=status.HTTP_201_CREATED)
+def create_experiences(account_id: uuid.UUID, form_data: List[CreateExperienceDTO]):
+    return applicant_service.create_experiences(account_id, form_data)
 
 
 @router.get("/get-applicant-profile/{account_id}")
