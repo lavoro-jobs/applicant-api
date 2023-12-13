@@ -38,8 +38,6 @@ def create_experiences(account_id: uuid.UUID, form_data: List[CreateExperienceDT
 
 def get_experiences(account_id: uuid.UUID):
     experiences = queries.get_applicant_experiences(account_id)
-    if not experiences:
-        raise HTTPException(status_code=404, detail="Applicant experiences not found")
     return experiences
 
 
