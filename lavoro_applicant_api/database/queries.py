@@ -41,11 +41,11 @@ def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantPr
     update_fields = prepare_tuple[0]
     query_params = prepare_tuple[1]
 
-    query = f"UPDATE applicant_profiles SET {', '.join(update_fields)} WHERE account_id = %s RETURNING *"
+    query = f"UPDATE applicant_profiles SET {', '.join(update_fields)} WHERE account_id = %s"
     result = db.execute_one((query, tuple(query_params)))
 
-    if result["result"]:
-        return ApplicantProfile(**result["result"][0])
+    if result["affected_rows"]:
+        return result["affected_rows"] == 1
     return None
 
 
@@ -54,11 +54,11 @@ def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperi
     update_fields = prepare_tuple[0]
     query_params = prepare_tuple[1]
 
-    query = f"UPDATE experiences SET {', '.join(update_fields)} WHERE id = %s RETURNING *"
+    query = f"UPDATE experiences SET {', '.join(update_fields)} WHERE id = %s"
     result = db.execute_one((query, tuple(query_params)))
 
-    if result["result"]:
-        return Experience(**result["result"][0])
+    if result["affected_rows"]:
+        return result["affected_rows"] == 1
     return None
 
 
