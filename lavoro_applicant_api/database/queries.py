@@ -164,6 +164,7 @@ def create_experiences(applicant_account_id, experiences: List[CreateExperienceD
     query = """
         INSERT INTO experiences (company_name, position_id, years, applicant_account_id)
         VALUES (%s, %s, %s, %s)
+        RETURNING *
         """
 
     query_tuple_list = [
@@ -180,4 +181,7 @@ def create_experiences(applicant_account_id, experiences: List[CreateExperienceD
     ]
 
     result = db.execute_many(query_tuple_list)
-    return result["affected_rows"]
+    if result["result"]:
+        print(result["result"])
+        return [Experience(**experience) for experience in result["result"]]
+    return None
