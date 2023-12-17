@@ -7,6 +7,7 @@ from lavoro_applicant_api.database import queries
 from lavoro_library.model.applicant_api.dtos import (
     CreateApplicantProfileDTO,
     CreateExperienceDTO,
+    UpdateApplicantExperienceDTO,
     UpdateApplicantProfileDTO,
 )
 
@@ -48,7 +49,7 @@ def update_applicant_profile(account_id: uuid.UUID, form_data: UpdateApplicantPr
     return result
 
 
-def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantProfileDTO):
+def update_experience(experience_id: uuid.UUID, form_data: UpdateApplicantExperienceDTO):
     result = queries.update_experience(experience_id, form_data)
     if not result:
         raise HTTPException(status_code=400, detail="Experience could not be updated")
