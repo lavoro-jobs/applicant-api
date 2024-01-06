@@ -87,6 +87,8 @@ def prepare_fields(id: uuid.UUID, form_data: Union[UpdateApplicantProfileDTO, Up
         else:
             if field == "cv" and value is not None:
                 value = base64.b64decode(value)
+            if field == "profile_picture" and value is not None:
+                value = base64.b64decode(value)
             update_fields.append(f"{field} = %s")
             query_params.append(value)
 
@@ -103,6 +105,7 @@ def create_applicant_profile(
     gender: Gender,
     skill_ids: List[int],
     cv: Union[str, None],
+    profile_picture: Union[str, None],
     work_type_id: int,
     seniority_level: int,
     position_id: int,
@@ -147,6 +150,9 @@ def create_applicant_profile(
     if cv:
         columns.append("cv")
         values.append(base64.b64decode(cv))
+    if profile_picture:
+        columns.append("profile_picture")
+        values.append(base64.b64decode(profile_picture))
 
     query = f"""
         INSERT INTO applicant_profiles ({', '.join(columns)})
