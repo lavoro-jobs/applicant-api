@@ -1,0 +1,27 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: applicant-api
+    labels:
+        app: applicant-api
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: applicant-api
+    template:
+        metadata:
+            labels:
+                app: applicant-api
+        spec:
+            containers:
+                - name: applicant-api
+                  image: lavorocontainers.azurecr.io/applicant-api:<tag>
+                  ports:
+                      - containerPort: 80
+                  env:
+                      - name: DB_CONNECTION_STRING
+                        valueFrom:
+                            secretKeyRef:
+                                name: db-connection-string
+                                key: DB_CONNECTION_STRING
